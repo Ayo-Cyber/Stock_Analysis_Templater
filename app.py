@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 from datetime import date
 import plotly.graph_objects as go
@@ -19,9 +20,65 @@ from src.plot_models import (
 
 # Set page config
 st.set_page_config(page_title="Stock Analyzer")
-st.title("📊 Stock Data Analyzer")
 
-# --- Sidebar Navigation ---
+# --- Full Page Countdown (Number Counting) ---
+# Placeholder for the countdown and title
+countdown_placeholder = st.empty()
+title_placeholder = st.empty()
+
+# Check if animation has been run before
+if 'animation_done' not in st.session_state:
+    st.session_state['animation_done'] = False
+
+# Run countdown and typing animation only once
+if not st.session_state['animation_done']:
+    # CSS for the countdown animation and styling
+    countdown_placeholder.markdown("""
+        <style>
+        .countdown-text {
+            font-size: 100px;
+            font-weight: bold;
+            color: #3498db;
+            text-align: center;
+            animation: fadeInOut 1.5s ease-in-out infinite;
+        }
+
+        /* Keyframe animation for the loading effect */
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Start the countdown from 0 to 100 (slower)
+    for i in range(101):
+        countdown_placeholder.markdown(f'<div class="countdown-text">{i}%</div>', unsafe_allow_html=True)
+        time.sleep(0.09)  # Adjust the delay to control the speed of counting (slower)
+
+    # After countdown, show the title with typing effect on the same line
+    countdown_placeholder.empty()  # Clear the countdown
+
+    # Simulating the typing effect for the page title
+    page_title = "📊 Stock Data Analyzer"
+    typed_title = ""
+    for char in page_title:
+        typed_title += char
+        title_placeholder.markdown(f'<h1>{typed_title}</h1>', unsafe_allow_html=True)
+        time.sleep(0.1)  # Typing speed (slower)
+
+    # Mark animation as done
+    st.session_state['animation_done'] = True
+
+# --- Main Content ---
+# Once the countdown is done, display the page content.
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select a page to navigate:", ["📈 Data Preview", "⚙️ Core Analysis", "📰 Stock News"])
 
