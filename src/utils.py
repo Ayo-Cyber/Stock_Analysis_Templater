@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 import plotly.graph_objects as go
+import datetime
 
 DEBUG = True  # Set this to False to disable debug prints
 
@@ -19,9 +20,9 @@ def load_data_from_file(file, stock_name=None, date_column=None):
             st.error("Unsupported file type. Please upload a CSV or Excel file.")
             return None
 
-        if DEBUG:
-            st.write("Raw Uploaded Data Preview:")
-            st.dataframe(df.head())
+        # if DEBUG:
+        #     st.write("Raw Uploaded Data Preview:")
+        #     st.dataframe(df.head())
 
         if date_column and date_column in df.columns:
             df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
@@ -66,72 +67,35 @@ def load_data_from_ticker(ticker, start_date, end_date):
         st.error(f"Error fetching data from Yahoo Finance: {e}")
         return None
 
+def fetch_clean_news_details(ticker_symbol: str, max_articles: int = 5):
+    """
+    Fetch and display clean stock news for a given ticker symbol using Streamlit.
+    """
+    ticker = yf.Ticker(ticker_symbol)
+    news_data = ticker.news
 
-def plot_line_chart(df: pd.DataFrame, stock_name: str, price_type='Close'):
-    if price_type not in df.columns:
-        st.error(f"'{price_type}' column not found in data.")
+    if not news_data:
+        st.warning(f"No news articles found for {ticker_symbol.upper()}.")
         return
 
-    if DEBUG:
-        st.write(f"Plotting {price_type} for {stock_name}")
-        st.write("Data Preview:")
-        st.dataframe(df[[price_type]].head())
+    st.markdown(f"### 📰 Latest News for **{ticker_symbol.upper()}**")
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df.index, y=df[price_type], mode='lines', name=price_type))
-    fig.update_layout(
-        title=f"{stock_name} - {price_type} Price Over Time",
-        xaxis_title="Date",
-        yaxis_title="Price (USD)",
-        template="plotly_dark"
-    )
+    for i, article in enumerate(news_data[:max_articles], 1):
+        content = article.get("content", {})
 
-    st.plotly_chart(fig, use_container_width=True, theme="streamlit")
+        title = content.get("title", "No Title")
+        summary = content.get("summary", "No Summary Available")
+        url = content.get("clickThroughUrl", {}).get("url", "")
+        image_url = content.get("thumbnail", {}).get("originalUrl", "")
+        provider = content.get("provider", {}).get("displayName", "Unknown Source")
+        pub_date = content.get("pubDate", "No Date Provided")
 
-def plot_volume_chart(df: pd.DataFrame, stock_name: str):
-    if 'Volume' not in df.columns:
-        st.warning("Volume column not found in data.")
-        return
-
-    if DEBUG:
-        st.write(f"Plotting Volume for {stock_name}")
-        st.dataframe(df[['Volume']].head())
-
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='Volume'))
-    fig.update_layout(
-        title=f"{stock_name} - Trading Volume",
-        xaxis_title="Date",
-        yaxis_title="Volume",
-        template="plotly_dark"
-    )
-
-    st.plotly_chart(fig, use_container_width=True, theme="streamlit")
-
-def plot_candlestick_chart(df: pd.DataFrame, stock_name: str):
-    required_cols = ['Open', 'High', 'Low', 'Close']
-    if not all(col in df.columns for col in required_cols):
-        st.error("Candlestick chart requires Open, High, Low, and Close columns.")
-        return
-
-    if DEBUG:
-        st.write(f"Plotting Candlestick for {stock_name}")
-        st.dataframe(df[required_cols].head())
-
-    fig = go.Figure(data=[go.Candlestick(
-        x=df.index,
-        open=df['Open'],
-        high=df['High'],
-        low=df['Low'],
-        close=df['Close'],
-        name='Candlestick'
-    )])
-    fig.update_layout(
-        title=f"{stock_name} - Candlestick Chart",
-        xaxis_title="Date",
-        yaxis_title="Price (USD)",
-        template="plotly_dark"
-    )
+        with st.container():
+            if image_url:
+                st.image(image_url, width=600, caption=title)
+            st.markdown(f"**{i}. [{title}]({url})**")
+            st.markdown(f"📝 {summary}")
+            st.markdown(f"**Source:** {provider} | 🗓️ Published: {pub_date}")
+            st.markdown("---")
 
 
-    st.plotly_chart(fig, use_container_width=True, theme="streamlit")
