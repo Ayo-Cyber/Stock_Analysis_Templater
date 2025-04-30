@@ -2,6 +2,7 @@ import time
 import streamlit as st
 from datetime import date
 import plotly.graph_objects as go
+import tensorflow as tf
 
 from src.utils import (
     load_data_from_file,
@@ -61,7 +62,7 @@ if not st.session_state['animation_done']:
     # Start the countdown from 0 to 100 (slower)
     for i in range(101):
         countdown_placeholder.markdown(f'<div class="countdown-text">{i}%</div>', unsafe_allow_html=True)
-        time.sleep(0.09)  # Adjust the delay to control the speed of counting (slower)
+        time.sleep(0.05)  # Adjust the delay to control the speed of counting (slower)
 
     # After countdown, show the title with typing effect on the same line
     countdown_placeholder.empty()  # Clear the countdown
@@ -80,7 +81,7 @@ if not st.session_state['animation_done']:
 # --- Main Content ---
 # Once the countdown is done, display the page content.
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select a page to navigate:", ["📈 Data Preview", "⚙️ Core Analysis", "📰 Stock News"])
+page = st.sidebar.radio("Select a page to navigate:", ["📈 Data Preview", "⚙️ Core Analysis", "📰 Stock News" , ""])
 
 # --- Visualizations Page ---
 if page == "📈 Data Preview":

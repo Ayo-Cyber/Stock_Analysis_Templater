@@ -7,3 +7,6 @@ streamlit
 plotly
 plotly_express
 yfinance
+langchain
+deepseek
+tensorflow
